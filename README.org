@@ -1,1 +1,4 @@
 NLP Utilities in Java and Clojure for Aria Haghighi's NLP group.
+
+What's Implemented?
+* fully functional Sequence CRF model
