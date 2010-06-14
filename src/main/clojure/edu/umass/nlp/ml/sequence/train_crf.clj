@@ -6,8 +6,7 @@
            [edu.umass.nlp.exec Execution])
   (:require [clojure.contrib [command-line :as cli]       
 	     [duck-streams :as ds]
-	     [string :as str]]
-	     [swank core]))
+	     [string :as str]]))
 
 (defn train-crf [labeled-seqs sigma-squared num-iters]
   (doto (CRF.)

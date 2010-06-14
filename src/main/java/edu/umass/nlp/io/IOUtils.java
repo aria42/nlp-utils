@@ -96,6 +96,10 @@ public class IOUtils {
     return Functional.mkString(lines(is),"","\n","");
   }
 
+  public static String text(String path) {
+    return text(new File(path));
+  }
+
   public static String text(Reader r) {
     return Functional.mkString(lines(r),"","\n","");
   }

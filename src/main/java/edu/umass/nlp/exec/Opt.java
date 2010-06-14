@@ -12,4 +12,5 @@ public @interface Opt {
 	public abstract String gloss() default "";
 	public abstract boolean required() default false;
   public abstract String defaultVal() default "";
+
 }

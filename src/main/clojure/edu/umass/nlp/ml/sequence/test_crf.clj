@@ -7,8 +7,7 @@
     edu.umass.nlp.ml.sequence.CRF$InfMode)
   (:require [clojure.contrib [command-line :as cli]
              [duck-streams :as ds]
-             [string :as str]]
-    [swank core]))
+             [string :as str]]))
 
 (defn read-data [input-file]
   (filter #(not (empty? %))
