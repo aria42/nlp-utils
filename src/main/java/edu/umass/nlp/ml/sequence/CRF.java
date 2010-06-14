@@ -13,6 +13,8 @@ import edu.umass.nlp.utils.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +54,12 @@ public class CRF implements Serializable {
 
   private double[] weights;
 
+
+  public static class Opts {
+    public LBFGSMinimizer.Opts optimizerOpts = new LBFGSMinimizer.Opts();
+    public int minPredCuttoffCount = 1;
+  }
+
   /**
    *
    */
@@ -88,9 +96,10 @@ public class CRF implements Serializable {
    */
 
   private transient Iterable<ILabeledSeqDatum> trainData;
-  private transient Logger logger = Logger.getLogger("CRF");
+  private transient Logger logger;
   {
-    logger.setLevel(Level.TRACE);
+    logger = Logger.getLogger("CRF");
+    logger.setLevel(Level.INFO);
   }
 
   /**
@@ -119,11 +128,19 @@ public class CRF implements Serializable {
     return ss;
   }
 
-  private Indexer<String> getPredIndexer(Iterable<ILabeledSeqDatum> labeledInstances) {
-    Indexer<String> predIndexer = new Indexer<String>();
+  private Indexer<String> getPredIndexer(Iterable<ILabeledSeqDatum> labeledInstances, Opts opts) {
+    ICounter<String> predCounts = new MapCounter<String>();
     for (ILabeledSeqDatum inst : labeledInstances) {
       for (List<String> preds : inst.getNodePredicates()) {
-        predIndexer.addAll(preds);
+        for (String pred : preds) {
+          predCounts.incCount(pred,1.0);
+        }
+      }
+    }
+    Indexer<String> predIndexer = new Indexer<String>();
+    for (IValued<String> valued : predCounts) {
+      if (valued.getValue() > opts.minPredCuttoffCount) {
+        predIndexer.add(valued.getElem());
       }
     }
     return predIndexer;
@@ -145,21 +162,25 @@ public class CRF implements Serializable {
 //    return null;
 //  }
 
+  private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+    ois.defaultReadObject();    
+    logger = Logger.getLogger("CRF");
+    logger.setLevel(Level.INFO);
+  }
 
-  public void train(Iterable<ILabeledSeqDatum> labeledInstances,
-                    IOptimizer.Opts opts) {
-    init(labeledInstances);
+  public void train(Iterable<ILabeledSeqDatum> labeledInstances, Opts opts) {                                        
+    init(labeledInstances,opts);
     logger.info(String.format("Training with sigmaSquared:%.5f and state-size:%d", sigmaSquared, stateSpace.getStates().size()));
     IDifferentiableFn fn = new CachingDifferentiableFn(new ObjFn());
     final IOptimizer optimizer = new LBFGSMinimizer();
-    double[] initWeights;
-    if (weights != null) {
-      logger.info("Re-initializing from current set of weights");
-      initWeights = weights ;
-    } else {
-      initWeights = new double[fn.getDimension()];
-    }
-    IOptimizer.Result optRes = optimizer.minimize(fn, initWeights, opts);
+    double[] initWeights = new double[fn.getDimension()];
+//    if (weights != null) {
+//      logger.info("Re-initializing from current set of weights");
+//      initWeights = weights;
+//    } else {
+//      initWeights = new double[fn.getDimension()];
+//    }
+    IOptimizer.Result optRes = optimizer.minimize(fn, initWeights, opts.optimizerOpts);
     setWeights(optRes.minArg);
     cleanup();
   }
@@ -170,25 +191,22 @@ public class CRF implements Serializable {
   }
 
 
-  private void init(Iterable<ILabeledSeqDatum> labeledInstances) {
-    if (predIndexer != null) {
-      logger.info("Already initialized, skipping...");
-    }
+  private void init(Iterable<ILabeledSeqDatum> labeledInstances, Opts opts) {
     logger.trace("starting init");
-    logger.trace("used memory: " + Runtime.getRuntime().totalMemory()/1.0e06);
+    logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
     this.trainData = labeledInstances;
-    logger.info(Runtime.getRuntime().freeMemory()/1.e06 + "M");
+    logger.info(Runtime.getRuntime().freeMemory() / 1.e06 + "M");
     this.stateSpace = getStateSpace(labeledInstances);
     logger.trace("constructed state space");
-    logger.trace("used memory: " + Runtime.getRuntime().totalMemory()/1.0e06);
-    logger.info(Runtime.getRuntime().freeMemory()/1.e06 + "M");
-    this.predIndexer = getPredIndexer(labeledInstances);
+    logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
+    logger.info(Runtime.getRuntime().freeMemory() / 1.e06 + "M");
+    this.predIndexer = getPredIndexer(labeledInstances, opts);
     logger.trace("constructed pred indexed");
-    logger.trace("used memory: " + Runtime.getRuntime().totalMemory()/1.0e06);
-    logger.info(Runtime.getRuntime().freeMemory()/1.e06 + "M");
+    logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
+    logger.info(Runtime.getRuntime().freeMemory() / 1.e06 + "M");
     this.labels = getLabelIndexer(labeledInstances);
     logger.trace("constructed labels");
-    logger.trace("used memory: " + Runtime.getRuntime().totalMemory()/1.0e06);
+    logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
   }
 
   private void setWeights(double[] x) {
@@ -353,7 +371,7 @@ public class CRF implements Serializable {
         // If cached we can parallelize
 
         // Shuffle data for parallelism
-        List<InternalDatum> predicatedData = new ArrayList<InternalDatum>((List)getPredicatedData());
+        List<InternalDatum> predicatedData = new ArrayList<InternalDatum>((List) getPredicatedData());
         java.util.Collections.shuffle(predicatedData);
         List<List<InternalDatum>> parts =
           Collections.partition(predicatedData, Runtime.getRuntime().availableProcessors());
@@ -365,7 +383,7 @@ public class CRF implements Serializable {
         });
         logger.trace("Computing Objective with " + workers.size() + " threads");
         ParallelUtils.doParallelWork(workers, workers.size());
-        logger.info("Memory: " + Runtime.getRuntime().freeMemory()/1.e06 + "M");
+        logger.info("Memory: " + Runtime.getRuntime().freeMemory() / 1.e06 + "M");
         for (Worker worker : workers) {
           logLike += worker.logLike;
           DoubleArrays.addInPlace(grad, worker.grad);
@@ -380,7 +398,7 @@ public class CRF implements Serializable {
 
       // Since the optimization framework is minimizing,
       // we minimize negLogLikelihood
-      // so must scale gradient by -1 as well     
+      // so must scale gradient by -1 as well
       logLike *= -1.0;
       DoubleArrays.scaleInPlace(grad, -1.0);
 
@@ -402,11 +420,19 @@ public class CRF implements Serializable {
   public InternalDatum toInternalDatum(ILabeledSeqDatum input) {
     List<int[]> predIndices = new ArrayList<int[]>();
     List<String> labels = new ArrayList<String>();
-    for (int ii = 0; ii < input.getNodePredicates().size(); ++ii) {
-      List<String> predList = input.getNodePredicates().get(ii);
-      int[] arr = new int[predList.size()];
+    final List<List<String>> nodePreds = input.getNodePredicates();
+    for (int ii = 0; ii < nodePreds.size(); ++ii) {
+      List<String> predList = nodePreds.get(ii);
+      List<Integer> tempIndices = new ArrayList<Integer>();
+      for (String pred : predList) {
+        int predIndex = predIndexer.indexOf(pred);
+        if (predIndex >= 0) {
+          tempIndices.add(predIndex);
+        }
+      }
+      int[] arr = new int[tempIndices.size()];
       for (int i = 0; i < arr.length; i++) {
-        arr[i] = predIndexer.indexOf(predList.get(i));
+        arr[i] = tempIndices.get(i);        
         assert arr[i] >= 0;
       }
       String label = input.getLabels().get(ii);
@@ -426,11 +452,11 @@ public class CRF implements Serializable {
     if (cacheTrainData) {
       if (cachedPredTrainData == null) {
         logger.info("Caching Predicated Data");
-        logger.info("Free Memory: " + (Runtime.getRuntime().freeMemory()/1e6)+"M");
+        logger.info("Free Memory: " + (Runtime.getRuntime().freeMemory() / 1e6) + "M");
         cachedPredTrainData = Functional.map(trainData, internalDatumFn);
         trainData = null;
         logger.info("Done.");
-        logger.info("Free Memory: " + Runtime.getRuntime().freeMemory()/1.e06 + "M");
+        logger.info("Free Memory: " + Runtime.getRuntime().freeMemory() / 1.e06 + "M");
       }
       return cachedPredTrainData;
     } else {
@@ -461,8 +487,9 @@ public class CRF implements Serializable {
   }
 
   public double getTagLogProb(ILabeledSeqDatum datum) {
-    double[][] logPots = getPotentialsAtTestTime(datum.getNodePredicates());
-    int numTrans = datum.getNodePredicates().size() - 1;
+    final List<List<String>> nodePreds = datum.getNodePredicates();
+    double[][] logPots = getPotentialsAtTestTime(nodePreds);
+    int numTrans = nodePreds.size() - 1;
     double logProb = 0.0;
     for (int i = 0; i < numTrans; ++i) {
       String trueState = datum.getLabels().get(i);
@@ -494,20 +521,28 @@ public class CRF implements Serializable {
   public List<String> getMinBayesRiskTagging(List<List<String>> input,
                                              Map<String, ICounter<String>> lossFn) {
     ForwardBackwards.Result fbRes = getResult(input);
-    double[][] lossPots = new double[input.size() - 1][stateSpace.getTransitions().size()];
+    return getMinBayesRiskTagging(fbRes.stateMarginals, lossFn);
+  }
+
+  public List<String> getMinBayesRiskTagging(
+    double[][] statePosts,
+    Map<String, ICounter<String>> lossFn) {
+    double[][] lossPots = new double[statePosts.length - 1][stateSpace.getTransitions().size()];
     for (int i = 0; i < lossPots.length; i++) {
       java.util.Arrays.fill(lossPots[i], Double.NEGATIVE_INFINITY);
       for (int s = 0; s < stateSpace.getStates().size(); ++s) {
-        lossPots[i][s] = fbRes.stateMarginals[i][s];
+        //lossPots[i][s] = statePosts[i][s];
         String label = stateSpace.getStates().get(s).label;
         double expLoss = 0.0;
         for (int sp = 0; sp < stateSpace.getStates().size(); ++sp) {
           String otherLabel = stateSpace.getStates().get(sp).label;
-          double post = fbRes.stateMarginals[i][sp];
+          double post = statePosts[i][sp];
           double loss = lossFn.get(label).getCount(otherLabel);
           expLoss += post * loss;
         }
-        lossPots[i][s] = -expLoss;
+        for (Transition trans : stateSpace.getTransitionsFrom(s)) {
+          lossPots[i][trans.index] = -expLoss;
+        }
       }
     }
     ForwardBackwards fb = new ForwardBackwards(stateSpace);
