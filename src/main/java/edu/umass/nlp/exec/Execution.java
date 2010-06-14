@@ -70,6 +70,10 @@ public class Execution {
     return (new File(opts.execDir)).getAbsolutePath();
   }
 
+  public static Object fillOptions(String group, Object o) {
+    return globalOptManager.fillOptions(group, o);
+  }
+
   public static void init() {
     BasicConfigurator.configure();
   }

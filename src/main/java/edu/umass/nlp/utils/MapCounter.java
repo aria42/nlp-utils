@@ -10,7 +10,7 @@ import java.util.*;
 public class MapCounter<K> extends AbstractCollection<IValued<K>> implements ICounter<K>  {
 
   private final static MutableDouble zero_ = new MutableDouble(0.0);
-
+ 
   private final Map<K, MutableDouble> counts_;
   private final MutableDouble totalCount_;
 
@@ -41,14 +41,26 @@ public class MapCounter<K> extends AbstractCollection<IValued<K>> implements ICo
   }
 
   public void incCount(K key, double incAmt) {
-    Collections.getMut(counts_, key, new MutableDouble(0.0)).inc(incAmt);
+    MutableDouble oldVal = Collections.getMut(counts_, key, new MutableDouble(0.0));
+    double newVal = oldVal.doubleValue() + incAmt;
+    if (newVal == 0.0) {
+      counts_.remove(key);
+    } else {
+      oldVal.inc(incAmt);
+    }
     totalCount_.inc(incAmt);
   }
 
   public void setCount(K key, double v) {
-    MutableDouble oldVal = Collections.getMut(counts_, key, new MutableDouble(0.0));
-    totalCount_.inc(v - oldVal.doubleValue());
-    oldVal.set(v);
+    if (v == 0.0) {
+      MutableDouble oldVal = Collections.get(counts_, key, zero_);
+      totalCount_.inc(v - oldVal.doubleValue());
+      counts_.remove(key);
+    } else {
+      MutableDouble oldVal = Collections.getMut(counts_, key, new MutableDouble(0.0));
+      totalCount_.inc(v - oldVal.doubleValue());
+      oldVal.set(v);
+    }
   }
 
   public double totalCount() {
@@ -126,7 +138,7 @@ public class MapCounter<K> extends AbstractCollection<IValued<K>> implements ICo
     System.out.println(counts);
     counts.setCount("suns", 1);
     System.out.println(counts);
-    counts.setCount("aliens", 0);
+    counts.incCount("aliens", 0);
     counts.add(BasicValued.make("aria",42.0));
     System.out.println(counts.toString(1));
     System.out.println(Counters.getTopK(counts,1,null));

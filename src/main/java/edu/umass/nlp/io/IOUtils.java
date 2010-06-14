@@ -6,11 +6,60 @@ import edu.umass.nlp.functional.Functional;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 public class IOUtils {
+
+  public static Iterable<String> lazyLines(final String path) {
+    try {
+      return lazyLines(new FileReader(path));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    throw new IllegalStateException();
+  }
+
+  public static Iterable<String> lazyLines(final Reader reader) {
+    return new Iterable<String>() {
+      public Iterator<String> iterator() {
+        final BufferedReader buffered = new BufferedReader(reader);
+        return new Iterator<String>() {
+          private String nextLine;
+          private boolean consumed = true;
+
+          private void queue() {
+            if (!consumed) return;
+            try {
+              nextLine = buffered.readLine();
+              consumed = false;
+            } catch (Exception e) {
+              e.printStackTrace();
+              System.exit(0);
+            }
+          }
+
+          public boolean hasNext() {
+            queue();
+            return nextLine != null;
+          }
+
+          public String next() {
+            queue();
+            String ret = nextLine;
+            consumed = true;
+            return ret;
+          }
+
+          public void remove() {
+            throw new RuntimeException("Not Implemented");
+          }
+        };
+      }
+    };
+  }
 
   public static List<String> lines(InputStream is) {
     return lines(new InputStreamReader(is));
@@ -183,6 +232,12 @@ public class IOUtils {
     } catch (Exception e) {
       e.printStackTrace();
       return null;
+    }
+  }
+
+  public static void main(String[] args) {
+    for (String s : IOUtils.lazyLines("/Users/aria42/Desktop/out.html")) {
+      System.out.println(s);
     }
   }
 }
