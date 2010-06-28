@@ -20,7 +20,7 @@ public class BacktrackingLineMinimizer implements ILineMinimizer {
       final double[] guess = DoubleArrays.addMultiples(initial, 1.0, direction, stepSize);
       final double curVal = fn.computeAt(guess).getFirst();
       final double targetVal = initVal + opts.sufficientDecreaseConstant * directDeriv * stepSize;
-      logger.info(String.format("iter=%d stepSize=%.6f curVal=%.4f targetVal=%.4f",iter,stepSize, curVal,targetVal));
+      logger.trace(String.format("iter=%d stepSize=%.6f curVal=%.4f targetVal=%.4f",iter,stepSize, curVal,targetVal));
       if (curVal <= targetVal) {
         Result res = new Result();
         res.minimized = guess;

@@ -199,6 +199,7 @@ public class DoubleArrays {
     return sum;
   }
 
+  
   public static double add(double[] a, int first, int last) {
     if (last >= a.length)
       throw new RuntimeException("last beyond end of array");
@@ -292,7 +293,7 @@ public class DoubleArrays {
   public static void addInPlace(double[] x, double[] y) {
     assert y.length >= x.length;
     for (int i = 0; i < x.length; ++i) {
-      if (y[i] != 0) x[i] += y[i];
+      x[i] += y[i];
     }
   }
 

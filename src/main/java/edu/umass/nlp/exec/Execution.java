@@ -1,5 +1,6 @@
 package edu.umass.nlp.exec;
 
+import edu.umass.nlp.io.IOUtils;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.Filter;
@@ -25,6 +26,12 @@ public class Execution {
 
     @Opt
     public boolean appendDate = false;
+
+    @Opt
+    public String loggerPattern = "%-5p [%c]: %m%n";
+
+    @Opt
+    public String tag;
 
     private void createExecDir() {
       File rootDir = new File(execPoolDir);
@@ -64,14 +71,14 @@ public class Execution {
 
 }
 
-  private static Opts opts;
+  public static Opts opts;
 
   public static String getExecutionDirectory() {
     return (new File(opts.execDir)).getAbsolutePath();
   }
 
-  public static Object fillOptions(String group, Object o) {
-    return globalOptManager.fillOptions(group, o);
+  public static <T> T fillOptions(String group, T o) {
+    return (T) globalOptManager.fillOptions(group, o);
   }
 
   public static void init() {
@@ -79,20 +86,30 @@ public class Execution {
   }
 
   public static void init(String configFile) {
+    if (configFile == null) {
+      throw new RuntimeException("No config file: " + configFile);      
+    }
     globalOptManager = new OptionManager(configFile);
     opts = (Opts) globalOptManager.fillOptions("exec", new Opts());
     opts.init();
     initRootLogger();
-    Logger.getLogger("Execution").info("ExecutionDirectory: " + getExecutionDirectory());
+    Logger logger = Logger.getLogger("Execution") ;
+    logger.info("ExecutionDirectory: " + getExecutionDirectory());
+    boolean created = (new File(getExecutionDirectory())).mkdirs();
+    if  (created) {
+      logger.info("Created " + getExecutionDirectory());
+    }
+    if (opts.tag != null) Logger.getLogger("Execution").info("tag: " + opts.tag);
+    IOUtils.copy(configFile, getExecutionDirectory() + "/config.yaml");
   }
 
   private static void initRootLogger() {
     try {
       Logger.getRootLogger().addAppender(
       new FileAppender(
-            new SimpleLayout(),
+            new PatternLayout(opts.loggerPattern),
             (new File(getExecutionDirectory(),"out.log")).getAbsolutePath()));
-      Logger.getRootLogger().addAppender(new ConsoleAppender(new SimpleLayout(), "System.out"));
+      Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout(opts.loggerPattern), "System.out"));
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(0);

@@ -13,6 +13,24 @@ import java.util.zip.ZipInputStream;
 
 public class IOUtils {
 
+  public static Iterable<String> lazyLines(final InputStream is) {
+    try {
+      return lazyLines(new InputStreamReader(is));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    throw new IllegalStateException();
+  }
+
+  public static Iterable<String> lazyLines(final File path) {
+    try {
+      return lazyLines(new FileReader(path));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    throw new IllegalStateException();
+  }
+
   public static Iterable<String> lazyLines(final String path) {
     try {
       return lazyLines(new FileReader(path));
@@ -235,9 +253,8 @@ public class IOUtils {
     }
   }
 
-  public static void main(String[] args) {
-    for (String s : IOUtils.lazyLines("/Users/aria42/Desktop/out.html")) {
-      System.out.println(s);
-    }
+  public static void copy(String src, String dest) {
+    List<String> lines = IOUtils.lines(src);
+    IOUtils.writeLines(dest,lines);
   }
 }

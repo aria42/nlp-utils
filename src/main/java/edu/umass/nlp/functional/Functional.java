@@ -45,7 +45,7 @@ public class Functional {
     return BasicValued.make(argMin,min);
   }
 
-	public static<K,I,V> Map<K,V> map(Map<K,I> map, Fn<I,V> fn, PredFn<K> pred, Map<K,V> resultMap) {
+  public static<K,I,V> Map<K,V> map(Map<K,I> map, Fn<I,V> fn, PredFn<K> pred, Map<K,V> resultMap) {
 		for (Map.Entry<K,I> entry: map.entrySet()) {
 		  K key = entry.getKey();
 		  I inter = entry.getValue();

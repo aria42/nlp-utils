@@ -9,8 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * 
- * @author aria42 (Lifted and modified from Dan Klein)
+ *
+ * @author Dan Klein
+ * @author aria42   (significant mods)
  */
 public class LBFGSMinimizer implements IOptimizer {
 
@@ -105,6 +106,7 @@ public class LBFGSMinimizer implements IOptimizer {
   }
 
   public Result minimize(IDifferentiableFn fn, double[] initial, IOptimizer.Opts opts) {
+    int numResets = 0;
     if (opts == null) opts = new Opts();
     clearHistories();
     logger.setLevel(opts.logLevel);
@@ -122,15 +124,27 @@ public class LBFGSMinimizer implements IOptimizer {
         OptimizeUtils.doLineMinimization(fn, cur.minArg, dir, opts, iter);
       Result next = getResult(fn,lineMinRes.minimized);
       final double relDiff = SloppyMath.relativeDifference(cur.minObjVal, next.minObjVal);
-      logger.info("relDiff: " + relDiff);
+      //logger.info("relDiff: " + relDiff);
       if (iter > opts.minIters && relDiff < opts.tol) {
+        if (numResets < ((Opts) opts).maxHistoryResets) {
+          logger.info("Dumping Cache");
+          iter--;
+          numResets++;
+          clearHistories();
+          continue;
+        }
+        logger.info(String.format("Finished: value: %.5f",cur.minObjVal));
         return cur;
       }
       // Updates
       updateHistories(cur.minArg,next.minArg, inputDiffs);
       updateHistories(cur.minGrad,next.minGrad, derivDiffs);
+      logger.info(String.format("End of iter %d: value: %.5f relDiff: %.3f",
+        iter+1,
+        cur.minObjVal,
+        SloppyMath.relativeDifference(cur.minObjVal, next.minObjVal)));
       cur = next;
-      logger.info(String.format("End of iter %d: value: %.5f",iter+1,cur.minObjVal));
+
     }
     return cur;
   }

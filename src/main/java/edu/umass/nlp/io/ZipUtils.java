@@ -38,6 +38,10 @@ public class ZipUtils {
     return null;
   }
 
+  public static boolean entryExists(ZipFile zipFile, String entryName) {
+    return zipFile.getEntry(entryName) != null; 
+  }
+
   public static void main(String[] args) {
     ZipFile root = ZipUtils.getZipFile(args[0]);
 

@@ -1,9 +1,7 @@
 package edu.umass.nlp.utils;
 
 
-import edu.umass.nlp.functional.DoubleFn;
-import edu.umass.nlp.functional.Fn;
-import edu.umass.nlp.functional.Functional;
+import edu.umass.nlp.functional.*;
 import edu.umass.nlp.ml.prob.DirichletMultinomial;
 
 import java.util.Comparator;
@@ -58,12 +56,16 @@ public class Counters {
     }
   }
 
-  public static <T> Set<T> getKeySet(ICounter<T> counter) {
+  public static <T> Set<T> getKeySet(ICounter<T> counter, PredFn<IValued<T>> prefFn) {
     Set<T> res = new HashSet<T>();
     for (IValued<T> valued : counter) {
-      res.add(valued.getElem());
+      if (prefFn.holdsAt(valued)) res.add(valued.getElem());
     }
     return res;
+  }
+
+  public static <T> Set<T> getKeySet(ICounter<T> counter) {
+    return getKeySet(counter, PredFns.<IValued<T>>getTruePredicate());
   }
 
   public static <T> ICounter<T> from(Iterable<IValued<T>> values) {
@@ -81,4 +83,12 @@ public class Counters {
     }
     return counts;
   }
+
+  public static <T> void incAll(ICounter<T> counts, Iterable<T> elems) {
+    for (T elem : elems) {
+      counts.incCount(elem,1.0);
+    }
+  }
+
+  
 }

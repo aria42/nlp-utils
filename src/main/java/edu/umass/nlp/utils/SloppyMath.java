@@ -1,5 +1,9 @@
 package edu.umass.nlp.utils;
 
+import org.apache.commons.collections.primitives.ArrayDoubleList;
+import org.apache.commons.collections.primitives.DoubleList;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -983,4 +987,13 @@ public final class SloppyMath {
     if (min == 0.0) return Math.abs(x-y);
     return Math.abs(x - y) / min;
   }
+
+  public static <T> double logAdd(Iterable<IValued<T>> elems) {
+    DoubleList xs = new ArrayDoubleList();
+    for (IValued<T> elem : elems) {
+      xs.add(elem.getValue());
+    }
+    return SloppyMath.logAdd(xs.toArray());    
+  }
+
 }

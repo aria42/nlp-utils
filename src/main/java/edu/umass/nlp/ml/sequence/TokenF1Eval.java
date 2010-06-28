@@ -10,9 +10,9 @@ import java.util.Set;
 
 public class TokenF1Eval {
 
-  public static void updateEval(List<String> trueLabels,
-                                List<String> guessLabels,
-                                Map<String, F1Stats> stats)
+  public static void updateEval(Map<String, F1Stats> stats,
+                                List<String> trueLabels,
+                                List<String> guessLabels)                                
   {
 
     for (int i = 0; i < trueLabels.size(); i++) {
@@ -20,13 +20,10 @@ public class TokenF1Eval {
       String guessLabel = guessLabels.get(i);
       
       if (trueLabel.equals(guessLabel)) {
-        Collections.getMut(stats,trueLabel, new F1Stats(trueLabel))
-          .observe(trueLabel, guessLabel);
+        Collections.getMut(stats,trueLabel, new F1Stats(trueLabel)).tp++;
       } else {
-        Collections.getMut(stats,trueLabel, new F1Stats(trueLabel))
-          .observe(trueLabel, guessLabel);
-        Collections.getMut(stats,trueLabel, new F1Stats(guessLabel))
-          .observe(trueLabel, guessLabel);
+        Collections.getMut(stats,trueLabel, new F1Stats(trueLabel)).fn++;
+        Collections.getMut(stats,guessLabel, new F1Stats(guessLabel)).fp++;
       }
     }
   }
