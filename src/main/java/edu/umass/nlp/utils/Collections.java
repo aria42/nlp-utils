@@ -190,4 +190,13 @@ public class Collections {
     }
     return res;
   }
+
+  public static <T> List<T> take(Iterable<T> elems, int n) {
+	  List<T> res = new ArrayList<T>();
+	  for (T elem: elems) {
+		res.add(elem);
+		if (res.size() == n) break;
+	  }
+	  return res;
+  }
 }

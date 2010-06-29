@@ -40,7 +40,7 @@ public class BacktrackingLineMinimizer implements ILineMinimizer {
   }
 
   public static void main(String[] args) {
-    Execution.init();
+    Execution.init(null);
     IDifferentiableFn function = new IDifferentiableFn() {
       public int getDimension() {
         return 1;

@@ -121,7 +121,7 @@ public class MapCounter<K> extends AbstractCollection<IValued<K>> implements ICo
       "]",   // stop
       new Fn<IValued<K>, String>() {
         public String apply(IValued<K> input) {
-          return String.format("%s: %.4f", input.getElem(), input.getValue());
+          return String.format("%s: %.4f\n", input.getElem(), input.getValue());
         }
       });
   }

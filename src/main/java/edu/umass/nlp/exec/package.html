@@ -1,0 +1,71 @@
+<html>     
+<body>
+ To use Execution framework, in the <code>main</code> of you entry point, the
+ first line should be
+ <br>
+ <code>
+ edu.umass.nlp.exec.Execution.init(pathToConfigFile);
+ </code>
+ The <code>pathToConfigFile</code> should be a string to a
+ yaml file that stores global options. Global options are used to populate
+ objects with public mutable fields using reflection. The purpose of this
+ is to provide easy (but not secure or robust) option management.  
+
+ The Execution framework does many thing, here's a summmary
+
+ <h1>Global Option Configuration</h1>
+
+ Options are grouped together in a hierarchichal fashion. For instance, the
+ main Execution option would be given in yaml by
+ 
+  <pre>
+  <code> 
+   exec:
+   &nbsp;execPoolDir: execs
+   &nbsp;loggerPattern: %-5p [%c]: %m%n
+  </code>
+  </pre>
+  
+  So in your code when you call:
+  <pre>
+  <code>
+    Execution.Opts execOpts = <a href="Execution.html#fillOptions">Execution.fillOptions</a>("exec", new Execution.Opts());
+  </code>                                                                        
+  </pre>
+  
+  We reflectively look up options under the <code>exec</code> part of the configuration
+  file and fills in fields of the passed in objects. You can fill in different instances
+  of the same options object by using different group names (e.g. <code>exec1, exec2, ...</code>).   
+
+  You can also do hierarchical option filling. 
+
+  <h1>Store Execution Log and Options in a Directory</h1>
+
+  Another feature of the Execution framework is that the log of every run goes to a directory
+  specified in the <code>exec.execDir</code> directory. Typically, you shouldn't specify the 
+  directory and instead use the option <code>exec.execPoolDir</code> which will automatically
+  make a new directory for each execution run by adding <code>0.exec,1.exec,2.exec,...</code>
+  as needed. The directory will store everything sent to the logger as well as a copy of configuration
+  needed to re-run the experiment (modulo code changes obviously). 
+
+  If you want to store other output in the execution directory, you have access to it in
+  <code><a href="Execution.html#getExecutionDirectory">Execution.getExecutionDirectry</a></code>.
+
+  You can add option processing behavior using
+  <code><a href="Execution.html#addOptionHandler">Execution.addOptionHandler</a></code>. See
+  <code><a href="StandardOptionHandlers.html"></a>StandardOptionHandlers</code> for example
+  option handlers. 
+            
+  <h1>Apache Logger Configuration</h1>
+
+  The Execution framework also configures the log4j logger (the pattern
+  for the logger prefix is configurable via the <code>exec.loggerPattern</code> option
+  in your global config file. 
+
+  This means in your code you should probably not use <code>System.out.println</code> and
+  opt instead to use the logger. You can read about the Apache Logger system <a href="http://logging.apache.org/log4j/1.2/manual.html">here</a>.  
+
+  Two relevant configurable options are:  <code><a href="Execution.Opts.html#loggerPattern">Execution.Opts.loggerPattern</a></code>
+  and <code><a href="Execution.Opts.html#logLevel">Execution.Opts.logLevel</a></code>.
+</body>
+</html>

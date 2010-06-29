@@ -41,7 +41,7 @@ public class GradientDescent implements IOptimizer {
   }
 
   public static void main(String[] args) {
-    Execution.init();
+    Execution.init(null);
     IDifferentiableFn fn = new IDifferentiableFn() {
       public IPair<Double, double[]> computeAt(double[] x) {
         return BasicPair.make( (x[0] -1.0)* (x[0]-1.0), new double[] { 2 * x[0] - 2 } );

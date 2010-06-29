@@ -163,7 +163,7 @@ public class LinearRegressionModel {
   }
 
   public static void main(String[] args) {
-    Execution.init();
+    Execution.init(null);
     List<String> doc = Collections.makeList("fuzzy", "wuzzy");
     class MyDatum implements LabeledDatum {
       private Iterable<String> elems;
