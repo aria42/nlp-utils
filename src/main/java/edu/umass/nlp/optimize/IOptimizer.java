@@ -14,7 +14,7 @@ public interface IOptimizer {
 
   public static class Opts {
     public int minIters = 10;
-    public int maxIters = 25;
+    public int maxIters = 50;
     public double tol = 1.0e-4;
     public Level logLevel = Level.INFO;
     public double initialStepSizeMultiplier = 0.01;

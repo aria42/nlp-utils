@@ -3,9 +3,7 @@
 //import edu.umass.nlp.utils.IValued;
 //
 //import java.util.List;
-//import java.util.Set;
 //
-//public interface Datum<L> {
-//  public Set<L> getAllowedLabels();
+//public interface Datum {
 //  public List<IValued<String>> getPredicates();
 //}
