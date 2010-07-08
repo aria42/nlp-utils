@@ -1,5 +1,11 @@
 package edu.umass.nlp.utils;
 
+/**
+ * Basic Implementation of <code>IPair</code> 
+ * @author aria42 (Aria Haghighi)
+ * @param <S>
+ * @param <T>
+ */
 public class BasicPair<S,T> implements IPair<S,T> {
 
   private final S s;

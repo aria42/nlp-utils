@@ -1,8 +1,8 @@
 package edu.umass.nlp.ml.classification;
 
-import edu.umass.nlp.exec.Execution;
 import edu.umass.nlp.functional.Fn;
 import edu.umass.nlp.functional.Functional;
+import edu.umass.nlp.ml.Regularizers;
 import edu.umass.nlp.ml.prob.DirichletMultinomial;
 import edu.umass.nlp.ml.prob.IDistribution;
 import edu.umass.nlp.optimize.CachingDifferentiableFn;
@@ -80,8 +80,7 @@ public class MaxEntropyClassifier<L> implements IProbabilisticClassifier<L> {
   }
 
   @Override
-  public void train(Iterable<LabeledClassifierDatum<L>> data)
-  {
+  public void train(Iterable<LabeledClassifierDatum<L>> data, Object opts) {
     indexPredicatesAndLabels(data);
     Iterable<InnerDatum> innerData =
         Functional.map(data, new Fn<LabeledClassifierDatum<L>, InnerDatum>() {
@@ -134,9 +133,9 @@ public class MaxEntropyClassifier<L> implements IProbabilisticClassifier<L> {
         for (int l = 0; l < probs.length; l++) {
           for (PredValPair pair : datum.pvs) {
             int f = getWeightIndex(pair.pred, l);
-            grad[f] += pair.val * probs[l];
+            grad[f] -= pair.val * probs[l];
             if (l == datum.trueLabelIndex) {
-              grad[f] -= pair.val * 1.0;
+              grad[f] += pair.val * 1.0;
             }
           }
         }
@@ -144,11 +143,11 @@ public class MaxEntropyClassifier<L> implements IProbabilisticClassifier<L> {
 
       // Negate
       logObj *= -1;
-      DoubleArrays.scale(grad, -1);
+      DoubleArrays.scaleInPlace(grad, -1);
 
-//      IPair<Double,double[]> regRes = Regularizers.getL2Regularizer(1.0).apply(x);
-//      logObj += regRes.getFirst();
-//      DoubleArrays.addInPlace(grad,regRes.getSecond());
+      IPair<Double,double[]> regRes = Regularizers.getL2Regularizer(1.0).apply(x);
+      logObj += regRes.getFirst();
+      DoubleArrays.addInPlace(grad,regRes.getSecond());
 
       return BasicPair.make(logObj, grad);
     }

@@ -1,6 +1,8 @@
 package edu.umass.nlp.ml;
 
-public class F1Stats {
+import edu.umass.nlp.utils.IMergable;
+
+public class F1Stats implements IMergable<F1Stats> {
 
   public int tp = 0, fp = 0, fn = 0;
   public final String label;
@@ -15,7 +17,6 @@ public class F1Stats {
     fn += other.fn;
   }
     
-
   public double getPrecision() {
     if (tp + fp > 0.0) {
       return (tp / (tp + fp + 0.0));

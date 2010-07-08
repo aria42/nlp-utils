@@ -8,10 +8,10 @@ import java.util.*;
 /**
  * Methods on Collections which are generally
  * non-destructive and functional in nature.
+ *
+ * @author aria42 (Aria Haghighi)
  */
 public class Collections {
-
-
 
   public static <T> List<T> makeList(T... arr) {
     List<T> res = new ArrayList<T>();

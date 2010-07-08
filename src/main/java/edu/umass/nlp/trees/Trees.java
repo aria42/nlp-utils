@@ -15,6 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Methods that can be performed
+ * on an <code >ITree</code>.
+ */
 public class Trees {
 
   public static <L> boolean isLeaf(ITree<L> tree) {

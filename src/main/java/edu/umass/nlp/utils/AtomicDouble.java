@@ -1,5 +1,12 @@
 package edu.umass.nlp.utils;
 
+/**
+ * Like <code>AtomicInteger</code>, <code>AtomicDouble</code>
+ * allows multiple threads to mutate a double safely, by
+ * putting a lock around it.
+ *
+ * @author aria42 (Aria Haghighi)
+ */
 public final class AtomicDouble implements java.io.Serializable {
 
     double x = 0.0;
