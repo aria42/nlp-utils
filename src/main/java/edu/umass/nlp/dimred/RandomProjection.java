@@ -29,7 +29,7 @@ public class RandomProjection {
 			SmallSparseVector vec = sparseX[i];
 			for (int j=0; j < vec.size(); ++j) {
 				int dim = vec.getActiveDimension(j);
-				double count = vec.getCount(dim);
+				double count = vec.getActiveDimensionCount(j);
 				if (count == 0.0) continue;
 				for (int k=0; k < kPrincipalComponents; ++k) {
 					double v = count * randomMatrix[dim][k];

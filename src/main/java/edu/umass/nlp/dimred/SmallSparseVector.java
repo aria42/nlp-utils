@@ -73,6 +73,11 @@ public class SmallSparseVector implements Serializable {
 		return indices[i];
 	}
 
+  public double getActiveDimensionCount(int i) {
+		assert i < data.length;
+		return data[i];
+	}
+
 	public double l2Norm() {
 		double sum = 0.0;
 		for (int i=0; i < length; ++i) {
