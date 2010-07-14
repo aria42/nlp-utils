@@ -19,6 +19,7 @@ import org.apache.commons.collections.primitives.ArrayDoubleList;
 import org.apache.commons.collections.primitives.ArrayIntList;
 import org.apache.commons.collections.primitives.DoubleList;
 import org.apache.commons.collections.primitives.IntList;
+import org.apache.log4j.Logger;
 
 public class Reranker<L>  {
 
@@ -29,6 +30,7 @@ public class Reranker<L>  {
 
 	private Indexer<String> featIndexer;
 	private double[] weights;
+  private transient Logger logger = Logger.getLogger("Reranker");
 
 	public double[] getWeights() {
 
@@ -198,6 +200,7 @@ public class Reranker<L>  {
   
 	public void train(final Iterable<LabeledDatum<L>> data, final Opts opts) {
 		featIndexer = new Indexer<String>();
+    logger.trace("Start Indexing Features");
 		for (LabeledDatum<L> datum : data) {
 			for (L label : datum.getAllowedLabels()) {
 				for (IValued<String> valued : datum.getFeatures(label)) {					
@@ -206,13 +209,19 @@ public class Reranker<L>  {
 			}
 		}
 		featIndexer.lock();
+    logger.trace("Done Indexing Features");
+    logger.info("Number of Features: " + featIndexer.size());
+    logger.trace("Start Caching Data to Internal Representation");
     final Iterable<InternalDatum> internalData = Functional.map(data, new Fn<LabeledDatum<L>, InternalDatum>() {
       public InternalDatum apply(LabeledDatum<L> input) {
         return toInternalDatum(input);
       }});        
-		IDifferentiableFn objFn = new CachingDifferentiableFn(new ObjFn(internalData,opts));
+		logger.trace("Done Caching Data");
+    IDifferentiableFn objFn = new CachingDifferentiableFn(new ObjFn(internalData,opts));
+    logger.trace("Starting Optimization");
 		IOptimizer.Result res = (new LBFGSMinimizer()).minimize(objFn, new double[objFn.getDimension()],opts.optimizerOpts); 		    
 		this.weights = DoubleArrays.clone(res.minArg);
+    logger.trace("Done with optimization");
 	}
 
 }
