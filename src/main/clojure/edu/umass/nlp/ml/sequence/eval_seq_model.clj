@@ -5,6 +5,8 @@
   (:require [clojure.contrib.duck-streams :as ds]))
 
 (defrecord LabelStats [label tp fp fn])
+
+
               
 (defn precision [{:keys [tp,fp]}] 
   (try-or-else (double (/ tp (+ tp fp))) 0.0))

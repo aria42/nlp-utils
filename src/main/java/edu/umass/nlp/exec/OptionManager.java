@@ -17,7 +17,7 @@ public class OptionManager {
 
   private final Map<String, Map<String, String>> globalOpts;
   private final Logger logger = Logger.getLogger("OptionManager");
-  private final Map<Class, Fn<String,Object>> handlers = new HashMap<Class, Fn<String, Object>>();
+  private final Map<Class, Fn<String, Object>> handlers = new HashMap<Class, Fn<String, Object>>();
 
   public OptionManager(String confFile) {
     globalOpts = (Map) (new Yaml()).load(IOUtils.text(confFile));
@@ -32,7 +32,7 @@ public class OptionManager {
   }
 
   private Object convertToType(Class type, String val) throws Exception {
-    Fn<String,Object> handler = handlers.get(type);
+    Fn<String, Object> handler = handlers.get(type);
     if (handler != null) {
       return handler.apply(val);
     }
@@ -84,28 +84,27 @@ public class OptionManager {
   }
 
   public Object fillOptions(Map localOpts, Object o) {
-    Class c = (o instanceof Class) ? ((Class) o) : o.getClass();      
+    Class c = (o instanceof Class) ? ((Class) o) : o.getClass();
     for (Field f : c.getFields()) {
       Opt opt = f.getAnnotation(Opt.class);
       String optName = getOptName(opt, f);
       Object optVal = localOpts.get(optName);
       if (optVal == null) continue;
-      if (optVal instanceof String) {
+      if ((optVal instanceof String) || (optVal instanceof Double) || (optVal instanceof Integer)) {
         try {
           f.set(o, convertToType(f.getType(), optVal.toString()));
         } catch (Exception e) {
           logger.warn("Error setting " + optName +
-            " with value " + optVal + "for class " + o.getClass().getSimpleName());
+              " with value " + optVal + "for class " + o.getClass().getSimpleName());
         }
       } else if (optVal instanceof Map) {
         try {
-          f.set(o, fillOptions((Map) optVal,f.getType().newInstance()));
+          f.set(o, fillOptions((Map) optVal, f.getType().newInstance()));
         } catch (Exception e) {
           logger.warn("Error setting " + optName +
-            " with value " + optVal + "for class " + o.getClass().getSimpleName());          
+              " with value " + optVal + "for class " + o.getClass().getSimpleName());
         }
-      }
-      else {
+      } else {
         throw new RuntimeException("Bad YAML Entry for " + optName + " with val " + optVal);
       }
     }

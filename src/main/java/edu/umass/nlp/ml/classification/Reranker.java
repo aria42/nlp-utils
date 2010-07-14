@@ -77,7 +77,7 @@ public class Reranker<L>  {
 		public L getTrueLabel();
 	}
 
-	private ICounter<L> getLabelProbs(Datum<L> datum) {
+	public ICounter<L> getLabelProbs(Datum<L> datum) {
 		List<L> labels = new ArrayList<L>(datum.getAllowedLabels());
 		double[] logProbs = new double[labels.size()];		
 		for (int i=0; i < logProbs.length; ++i) {		
