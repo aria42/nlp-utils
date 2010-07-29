@@ -90,7 +90,7 @@ public class OptionManager {
       String optName = getOptName(opt, f);
       Object optVal = localOpts.get(optName);
       if (optVal == null) continue;
-      if ((optVal instanceof String) || (optVal instanceof Double) || (optVal instanceof Integer)) {
+      if ((optVal instanceof String) || (optVal instanceof Boolean) || (optVal instanceof Double) || (optVal instanceof Integer)) {
         try {
           f.set(o, convertToType(f.getType(), optVal.toString()));
         } catch (Exception e) {

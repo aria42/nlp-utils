@@ -100,7 +100,6 @@ public class Execution {
     globalOptManager.addOptionHandler(type,handler);
   }
 
-
   public static void init(String configFile) {
     if (configFile !=  null) {
       globalOptManager = new OptionManager(configFile);

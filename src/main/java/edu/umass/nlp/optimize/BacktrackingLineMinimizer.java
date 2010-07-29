@@ -16,11 +16,13 @@ public class BacktrackingLineMinimizer implements ILineMinimizer {
     final double initVal = initPair.getFirst();
     final double[] initDeriv = initPair.getSecond();
     final double directDeriv = DoubleArrays.innerProduct(initDeriv, direction);
+    logger.trace("DirectionalDeriv: " + directDeriv);
     for (int iter=0; iter < opts.maxIterations; ++iter) {
       final double[] guess = DoubleArrays.addMultiples(initial, 1.0, direction, stepSize);
       final double curVal = fn.computeAt(guess).getFirst();
       final double targetVal = initVal + opts.sufficientDecreaseConstant * directDeriv * stepSize;
-      logger.trace(String.format("iter=%d stepSize=%.6f curVal=%.4f targetVal=%.4f",iter,stepSize, curVal,targetVal));
+      final double diff = curVal - targetVal;
+      logger.trace(String.format("iter=%d stepSize=%.6f curVal=%.4f targetVal=%.4f diff=%.5f",iter,stepSize, curVal,targetVal,diff));
       if (curVal <= targetVal) {
         Result res = new Result();
         res.minimized = guess;
