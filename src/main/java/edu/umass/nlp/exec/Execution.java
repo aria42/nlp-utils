@@ -125,10 +125,14 @@ public class Execution {
 
   }
 
+  private static boolean rootLoggerInited = false;
+
   private static void initRootLogger() {
+    if (rootLoggerInited) return;
+    rootLoggerInited = true;
     try {
         Logger.getRootLogger().addAppender(
-        new FileAppender(
+          new FileAppender(
               new PatternLayout(opts.loggerPattern),
               (new File(getExecutionDirectory(),"out.log")).getAbsolutePath()));
         Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout(opts.loggerPattern), "System.out"));

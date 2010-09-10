@@ -541,6 +541,22 @@ public class CRF implements Serializable {
     return logProb;
   }
 
+  public List<ICounter<String>> getTokenPosteriors(List<List<String>> input) {
+    double[][] logPots = getPotentialsAtTestTime(input);
+    ForwardBackwards fb = new ForwardBackwards(stateSpace);
+    fb.setInput(logPots);
+    double[][] nodeMarginals = fb.getNodeMarginals();
+    List<ICounter<String>> res = new ArrayList<ICounter<String>>();
+    for (int i=0; i < nodeMarginals.length; ++i) {
+      ICounter<String> posts = new MapCounter<String>();
+      for (int j=0; j < nodeMarginals[i].length; ++j) {
+        posts.setCount(labels.get(j),nodeMarginals[i][j]);
+      }
+      res.add(posts);
+    }
+    return res;
+  }
+
   public List<String> getViterbiTagging(List<List<String>> input) {
     double[][] logPots = getPotentialsAtTestTime(input);
     ForwardBackwards fb = new ForwardBackwards(stateSpace);
@@ -569,6 +585,7 @@ public class CRF implements Serializable {
     double[][] statePosts,
     Map<String, ICounter<String>> lossFn) {
     double[][] lossPots = new double[statePosts.length - 1][stateSpace.getTransitions().size()];
+    double[][] collapsedLossPots = new double[statePosts.length - 1][stateSpace.getStates().size()];
     for (int i = 0; i < lossPots.length; i++) {
       java.util.Arrays.fill(lossPots[i], Double.NEGATIVE_INFINITY);
       for (int s = 0; s < stateSpace.getStates().size(); ++s) {
@@ -581,6 +598,7 @@ public class CRF implements Serializable {
           double loss = lossFn.get(otherLabel).getCount(label);
           expLoss += post * loss;
         }
+        collapsedLossPots[i][s] = -expLoss;
         for (Transition trans : stateSpace.getTransitionsFrom(s)) {
           lossPots[i][trans.index] = -expLoss;
         }
