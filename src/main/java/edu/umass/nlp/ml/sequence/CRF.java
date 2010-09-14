@@ -28,7 +28,8 @@ public class CRF implements Serializable {
 
   // States are just CRF labels (assuming Start/Stop)
   private StateSpace stateSpace;
-  private Indexer<String> labels;
+  private List<String> labels;
+
 
   // A predicate is a feautre except
   // it hasn't been conjoined with a label
@@ -217,7 +218,10 @@ public class CRF implements Serializable {
     logger.trace("constructed pred indexed");
     //logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
     logger.info(Runtime.getRuntime().freeMemory() / 1.e06 + "M");
-    this.labels = getLabelIndexer(labeledInstances);
+    this.labels = Functional.map(stateSpace.getStates(), new Fn<State, String>() {      
+      @Override public String apply(State input) {
+        return input.label;
+      }});
     logger.trace("constructed labels");
     logger.trace("used memory: " + Runtime.getRuntime().totalMemory() / 1.0e06);
   }
@@ -548,11 +552,7 @@ public class CRF implements Serializable {
     double[][] nodeMarginals = fb.getNodeMarginals();
     List<ICounter<String>> res = new ArrayList<ICounter<String>>();
     for (int i=0; i < nodeMarginals.length; ++i) {
-      ICounter<String> posts = new MapCounter<String>();
-      for (int j=0; j < nodeMarginals[i].length; ++j) {
-        posts.setCount(labels.get(j),nodeMarginals[i][j]);
-      }
-      res.add(posts);
+      res.add(Counters.from(nodeMarginals[i],labels));
     }
     return res;
   }
