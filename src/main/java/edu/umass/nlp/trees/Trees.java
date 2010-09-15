@@ -4,16 +4,11 @@ import edu.umass.nlp.functional.Fn;
 import edu.umass.nlp.functional.Functional;
 import edu.umass.nlp.functional.PredFn;
 import edu.umass.nlp.io.IOUtils;
-import edu.umass.nlp.utils.BasicPair;
+import edu.umass.nlp.utils.*;
 import edu.umass.nlp.utils.Collections;
-import edu.umass.nlp.utils.IPair;
-import edu.umass.nlp.utils.StringUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Methods that can be performed
@@ -83,6 +78,21 @@ public class Trees {
       public L apply(ITree<L> input) {
         return input.getLabel();
       }});      
+  }
+
+  public static <L>IdentityHashMap<ITree<L>, Span> getSpanMap(ITree<L> root) {
+    return getSpanMap(root,0);
+  }
+
+  public static <L>IdentityHashMap<ITree<L>, Span> getSpanMap(ITree<L> root, int start) {
+    IdentityHashMap<ITree<L>,Span> res = new IdentityHashMap<ITree<L>,Span>();
+    int newStart = start;
+    for (ITree<L> child : root.getChildren()) {
+      res.putAll(getSpanMap(child, newStart));
+      newStart += Trees.getLeafYield(child).size();
+    }
+    res.put(root, new Span(start,newStart));
+    return res;
   }
 
   private static class TreeReader {
@@ -172,18 +182,19 @@ public class Trees {
   }
 
   public static void main(String[] args) {
-    ITree<String> c = new BasicTree("c",new ArrayList());
-    ITree<String> p = new BasicTree("p", Collections.makeList(c,c));
+//    ITree<String> c = new BasicTree("c",new ArrayList());
+//    ITree<String> p = new BasicTree("p", Collections.makeList(c,c));
     ITree<String> t = readTree("(S (NP (DT the) (NN man)) (VP (VBD ran)))");
-    List<ITree<String>> tags = Functional.filter(getNodes(t), new PredFn<ITree<String>>() {
-      public boolean holdsAt(ITree<String> elem) {
-        return isPreLeaf(elem);
-      }});
-    Iterable<ITree<String>> trees =
-      readTrees(IOUtils.text(new File("/Users/aria42/Dropbox/projs/umass-nlp/trees.mrg")));
-    for (ITree<String> tree : trees) {
-      System.out.println(tree);
-    }
+    System.out.println("spanMap: " + getSpanMap(t));
+//    List<ITree<String>> tags = Functional.filter(getNodes(t), new PredFn<ITree<String>>() {
+//      public boolean holdsAt(ITree<String> elem) {
+//        return isPreLeaf(elem);
+//      }});
+//    Iterable<ITree<String>> trees =
+//      readTrees(IOUtils.text(new File("/Users/aria42/Dropbox/projs/umass-nlp/trees.mrg")));
+//    for (ITree<String> tree : trees) {
+//      System.out.println(tree);
+//    }
   }
   
 }
