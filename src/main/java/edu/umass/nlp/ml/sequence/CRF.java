@@ -556,6 +556,33 @@ public class CRF implements Serializable {
     }
     return res;
   }
+  
+  public List<ICounter<String>> getTokenPosteriors(double[][] potentials) {
+    ForwardBackwards fb = new ForwardBackwards(stateSpace);
+    fb.setInput(potentials);
+    double[][] nodeMarginals = fb.getNodeMarginals();
+    List<ICounter<String>> res = new ArrayList<ICounter<String>>();
+    for (int i=0; i < nodeMarginals.length; ++i) {
+      res.add(Counters.from(nodeMarginals[i],labels));
+    }
+    return res;
+  }
+  
+
+  /**
+   * Returns [num-transitions][num-possible-transitions]
+   * num-transitions = input.size()-1
+   * num-possible-transitions = getStateSpace().getTransitions().size()
+   */
+  public double[][] getPotentials(List<List<String>> input) {
+    return getPotentialsAtTestTime(input);
+  }
+  
+  public List<String> getViterbiTagging(double[][] potentials) {
+    ForwardBackwards fb = new ForwardBackwards(stateSpace);
+    fb.setInput(potentials);
+    return fb.viterbiDecode();    
+  }
 
   public List<String> getViterbiTagging(List<List<String>> input) {
     double[][] logPots = getPotentialsAtTestTime(input);
