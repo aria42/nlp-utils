@@ -1,12 +1,11 @@
 * UMass-NLP 
 
-NLP Utilities in Java and Clojure for Aria Haghighi's NLP group at UMass.
+NLP Utilities in Java and Clojure from Aria Haghighi's grad school and post-doc days.
 
 ** What's Implemented?
-*** Machine Learning
-**** Generic unconstrained function optimization, including L-BFGS
-**** Maximum Entropy Classification
-**** Sequence CRF Model
-**** Common dimensinality reduction techniques
-
+- Generic unconstrained numerical function optimization, including L-BFGS
+- Basic machine learning abstractions: sparse feature vectors and large-scale indexing
+- MaxEnt classification
+- Sequence CRF Model
+- Common dimensinality reduction techniques
 
