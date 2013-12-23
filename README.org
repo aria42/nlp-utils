@@ -1,4 +1,4 @@
-* UMass-NLP 
+* NLP Utils
 
 NLP Utilities in Java and Clojure from Aria Haghighi's grad school and post-doc days.
 
