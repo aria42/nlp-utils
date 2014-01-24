@@ -24,6 +24,12 @@ public interface ILineMinimizer {
       }
     }
 
+    /**
+     * Given a function fn and an initial point x0 and a direction dir 
+     * we want to return scalar alpha that minimizes
+     * min_alpha f(x0 + alpha * dir)
+     * where alpha * dir scales the vector dir by scalar alpha
+     */
     public Result minimizeAlongDirection(IDifferentiableFn fn, double[] initial, double[] direction, Opts opts);
     
 }
